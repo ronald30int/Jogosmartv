@@ -5,8 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jogo da Velha</title>
     <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-image: url('fundo.png');
+            background-size: cover;
+            background-position: center;
+        }
         table {
             border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.8); /* Fundo branco com transparência */
         }
         .cell {
             width: 100px;
@@ -14,6 +27,15 @@
             text-align: center;
             font-size: 2em;
             border: 2px solid #000;
+            position: relative;
+        }
+        .cell img {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            object-fit: cover; /* Ajusta a imagem ao tamanho da célula */
         }
         .cell:not(:last-child) {
             border-right: none;
@@ -53,6 +75,9 @@
         let scoreX = 0;
         let scoreO = 0;
 
+        const imageX = 'imagem1.png';
+        const imageO = 'imagem2.png';
+
         const winningCombinations = [
             [0, 1, 2],
             [3, 4, 5],
@@ -66,8 +91,10 @@
 
         board.addEventListener('click', function(event) {
             const cell = event.target;
-            if (cell.classList.contains('cell') && cell.textContent === '') {
-                cell.textContent = currentPlayer;
+            if (cell.classList.contains('cell') && !cell.querySelector('img')) {
+                const img = document.createElement('img');
+                img.src = currentPlayer === 'X' ? imageX : imageO;
+                cell.appendChild(img);
                 if (checkWin(currentPlayer)) {
                     alert(`Time ${currentPlayer} venceu!`);
                     updateScore(currentPlayer);
@@ -83,7 +110,8 @@
 
         function checkWin(player) {
             const cells = Array.from(document.querySelectorAll('.cell'));
-            const playerCells = cells.map(cell => cell.textContent === player);
+            const playerSrc = player === 'X' ? imageX : imageO;
+            const playerCells = cells.map(cell => cell.querySelector('img') && cell.querySelector('img').src.endsWith(playerSrc));
             return winningCombinations.some(combination => 
                 combination.every(index => playerCells[index])
             );
@@ -91,7 +119,7 @@
 
         function checkDraw() {
             const cells = Array.from(document.querySelectorAll('.cell'));
-            return cells.every(cell => cell.textContent !== '');
+            return cells.every(cell => cell.querySelector('img'));
         }
 
         function updateScore(player) {
@@ -106,7 +134,7 @@
 
         function resetBoard() {
             const cells = document.querySelectorAll('.cell');
-            cells.forEach(cell => cell.textContent = '');
+            cells.forEach(cell => cell.innerHTML = '');
         }
     </script>
 </body>
