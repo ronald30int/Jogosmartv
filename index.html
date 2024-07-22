@@ -4,37 +4,102 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jogo da Velha</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            text-align: center;
+            font-size: 2em;
+            border: 2px solid #000;
+        }
+        .cell:not(:last-child) {
+            border-right: none;
+        }
+        tr:not(:last-child) .cell {
+            border-bottom: none;
+        }
+    </style>
 </head>
 <body>
-    <table id="board" border="1" style="border-collapse: collapse;">
+    <h1>Jogo da Velha</h1>
+    <div>
+        <span>Time X: <span id="scoreX">0</span></span>
+        <span>Time O: <span id="scoreO">0</span></span>
+    </div>
+    <table id="board">
         <tr>
-            <td class="cell" data-index="0" style="width: 100px; height: 100px; text-align: center; font-size: 2em;"></td>
-            <td class="cell" data-index="1" style="width: 100px; height: 100px; text-align: center; font-size: 2em;"></td>
-            <td class="cell" data-index="2" style="width: 100px; height: 100px; text-align: center; font-size: 2em;"></td>
+            <td class="cell" data-index="0"></td>
+            <td class="cell" data-index="1"></td>
+            <td class="cell" data-index="2"></td>
         </tr>
         <tr>
-            <td class="cell" data-index="3" style="width: 100px; height: 100px; text-align: center; font-size: 2em;"></td>
-            <td class="cell" data-index="4" style="width: 100px; height: 100px; text-align: center; font-size: 2em;"></td>
-            <td class="cell" data-index="5" style="width: 100px; height: 100px; text-align: center; font-size: 2em;"></td>
+            <td class="cell" data-index="3"></td>
+            <td class="cell" data-index="4"></td>
+            <td class="cell" data-index="5"></td>
         </tr>
         <tr>
-            <td class="cell" data-index="6" style="width: 100px; height: 100px; text-align: center; font-size: 2em;"></td>
-            <td class="cell" data-index="7" style="width: 100px; height: 100px; text-align: center; font-size: 2em;"></td>
-            <td class="cell" data-index="8" style="width: 100px; height: 100px; text-align: center; font-size: 2em;"></td>
+            <td class="cell" data-index="6"></td>
+            <td class="cell" data-index="7"></td>
+            <td class="cell" data-index="8"></td>
         </tr>
     </table>
 
     <script>
         const board = document.getElementById('board');
         let currentPlayer = 'X';
+        let scoreX = 0;
+        let scoreO = 0;
+
+        const winningCombinations = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
 
         board.addEventListener('click', function(event) {
             const cell = event.target;
             if (cell.classList.contains('cell') && cell.textContent === '') {
                 cell.textContent = currentPlayer;
-                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                if (checkWin(currentPlayer)) {
+                    alert(`Time ${currentPlayer} venceu!`);
+                    updateScore(currentPlayer);
+                    resetBoard();
+                } else {
+                    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                }
             }
         });
+
+        function checkWin(player) {
+            const cells = Array.from(document.querySelectorAll('.cell'));
+            const playerCells = cells.map(cell => cell.textContent === player);
+            return winningCombinations.some(combination => 
+                combination.every(index => playerCells[index])
+            );
+        }
+
+        function updateScore(player) {
+            if (player === 'X') {
+                scoreX++;
+                document.getElementById('scoreX').textContent = scoreX;
+            } else {
+                scoreO++;
+                document.getElementById('scoreO').textContent = scoreO;
+            }
+        }
+
+        function resetBoard() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => cell.textContent = '');
+        }
     </script>
 </body>
 </html>
