@@ -3,139 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo da Velha</title>
+    <title>Jogo Corrida Horizontal</title>
     <style>
         body {
             margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-image: url('fundo.png');
-            background-size: cover;
-            background-position: center;
+            overflow: hidden;
+            background-color: #f7f7f7;
         }
-        table {
-            border-collapse: collapse;
-            background: rgba(255, 255, 255, 0.8); /* Fundo branco com transparência */
+        canvas {
+            display: block;
         }
-        .cell {
-            width: 100px;
-            height: 100px;
-            text-align: center;
-            font-size: 2em;
-            border: 2px solid #000;
-            position: relative;
+        #jumpButton {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
         }
-        .cell img {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            object-fit: cover; /* Ajusta a imagem ao tamanho da célula */
-        }
-        .cell:not(:last-child) {
-            border-right: none;
-        }
-        tr:not(:last-child) .cell {
-            border-bottom: none;
+        #score, #timer {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
-    <h1>Jogo da Velha</h1>
-    <div>
-        <span>Time X: <span id="scoreX">0</span></span>
-        <span>Time O: <span id="scoreO">0</span></span>
-    </div>
-    <table id="board">
-        <tr>
-            <td class="cell" data-index="0"></td>
-            <td class="cell" data-index="1"></td>
-            <td class="cell" data-index="2"></td>
-        </tr>
-        <tr>
-            <td class="cell" data-index="3"></td>
-            <td class="cell" data-index="4"></td>
-            <td class="cell" data-index="5"></td>
-        </tr>
-        <tr>
-            <td class="cell" data-index="6"></td>
-            <td class="cell" data-index="7"></td>
-            <td class="cell" data-index="8"></td>
-        </tr>
-    </table>
-
+    <canvas id="gameCanvas"></canvas>
+    <button id="jumpButton">Pular</button>
+    <div id="score">Pontuação: 0</div>
+    <div id="timer">Tempo: 0s</div>
     <script>
-        const board = document.getElementById('board');
-        let currentPlayer = 'X';
-        let scoreX = 0;
-        let scoreO = 0;
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width = window.innerWidth;
+        const height = canvas.height = window.innerHeight;
 
-        const imageX = 'imagem1.png';
-        const imageO = 'imagem2.png';
+        // Carregar imagens
+        const dinoImage = new Image();
+        const grassImage = new Image();
+        const backgroundImage = new Image();
+        dinoImage.src = 'imagem1.png';  // Substitua pelo caminho correto da imagem do boneco
+        grassImage.src = 'imagem2.png'; // Substitua pelo caminho correto da imagem do gramado
+        backgroundImage.src = 'imagem3.png'; // Substitua pelo caminho correto da imagem do fundo
 
-        const winningCombinations = [
-            [0, 1, 2],
-            [3, 4, 5],
-            [6, 7, 8],
-            [0, 3, 6],
-            [1, 4, 7],
-            [2, 5, 8],
-            [0, 4, 8],
-            [2, 4, 6]
-        ];
+        const dino = {
+            x: 50,
+            y: height - 70,
+            width: 40,
+            height: 40,
+            dx: 5,
+            dy: 0,
+            gravity: 0.8,
+            jumpPower: -12,
+            isJumping: false
+        };
 
-        board.addEventListener('click', function(event) {
-            const cell = event.target;
-            if (cell.classList.contains('cell') && !cell.querySelector('img')) {
-                const img = document.createElement('img');
-                img.src = currentPlayer === 'X' ? imageX : imageO;
-                cell.appendChild(img);
-                if (checkWin(currentPlayer)) {
-                    alert(`Time ${currentPlayer} venceu!`);
-                    updateScore(currentPlayer);
-                    resetBoard();
-                } else if (checkDraw()) {
-                    alert('O jogo terminou em empate!');
-                    resetBoard();
-                } else {
-                    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-                }
+        let obstacles = [];
+        let obstacleInterval = 0;
+        let score = 0;
+        let startTime = Date.now();
+
+        function drawDino() {
+            ctx.drawImage(dinoImage, dino.x, dino.y, dino.width, dino.height);
+        }
+
+        function drawObstacles() {
+            obstacles.forEach(obs => {
+                ctx.drawImage(grassImage, obs.x, obs.y, obs.width, obs.height);
+            });
+        }
+
+        function drawGround() {
+            ctx.drawImage(grassImage, 0, height - 50, width, 50); // Solo de gramado
+        }
+
+        function drawBackground() {
+            ctx.drawImage(backgroundImage, 0, 0, width, height); // Fundo de tela cheia
+        }
+
+        function updateObstacles() {
+            obstacleInterval++;
+            if (obstacleInterval > 60) {
+                obstacles.push({
+                    x: width,
+                    y: height - 70,
+                    width: 20 + Math.random() * 30,
+                    height: 20 + Math.random() * 30
+                });
+                obstacleInterval = 0;
             }
-        });
 
-        function checkWin(player) {
-            const cells = Array.from(document.querySelectorAll('.cell'));
-            const playerSrc = player === 'X' ? imageX : imageO;
-            const playerCells = cells.map(cell => cell.querySelector('img') && cell.querySelector('img').src.endsWith(playerSrc));
-            return winningCombinations.some(combination => 
-                combination.every(index => playerCells[index])
-            );
+            obstacles.forEach(obs => {
+                obs.x -= dino.dx;
+            });
+
+            obstacles = obstacles.filter(obs => obs.x + obs.width > 0);
         }
 
-        function checkDraw() {
-            const cells = Array.from(document.querySelectorAll('.cell'));
-            return cells.every(cell => cell.querySelector('img'));
+        function checkCollision() {
+            return obstacles.some(obs => {
+                return dino.x < obs.x + obs.width &&
+                    dino.x + dino.width > obs.x &&
+                    dino.y < obs.y + obs.height &&
+                    dino.y + dino.height > obs.y;
+            });
         }
 
-        function updateScore(player) {
-            if (player === 'X') {
-                scoreX++;
-                document.getElementById('scoreX').textContent = scoreX;
+        function jump() {
+            if (!dino.isJumping) {
+                dino.dy = dino.jumpPower;
+                dino.isJumping = true;
+            }
+        }
+
+        function updateTimer() {
+            const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('timer').textContent = `Tempo: ${elapsedTime}s`;
+        }
+
+        function updateScore() {
+            score++;
+            document.getElementById('score').textContent = `Pontuação: ${score}`;
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, width, height);
+
+            drawBackground();
+            drawGround();
+
+            dino.y += dino.dy;
+            dino.dy += dino.gravity;
+
+            if (dino.y > height - 70) {
+                dino.y = height - 70;
+                dino.dy = 0;
+                dino.isJumping = false;
+            }
+
+            updateObstacles();
+            drawDino();
+            drawObstacles();
+
+            if (checkCollision()) {
+                alert('Game Over! Pontuação final: ' + score);
+                obstacles = [];
+                dino.y = height - 70;
+                dino.dy = 0;
+                dino.isJumping = false;
+                score = 0;
+                startTime = Date.now();
             } else {
-                scoreO++;
-                document.getElementById('scoreO').textContent = scoreO;
+                updateScore();
+                updateTimer();
             }
+
+            requestAnimationFrame(gameLoop);
         }
 
-        function resetBoard() {
-            const cells = document.querySelectorAll('.cell');
-            cells.forEach(cell => cell.innerHTML = '');
-        }
+        document.getElementById('jumpButton').addEventListener('click', jump);
+
+        // Iniciar o jogo quando as imagens forem carregadas
+        backgroundImage.onload = () => {
+            grassImage.onload = () => {
+                dinoImage.onload = () => {
+                    gameLoop();
+                };
+            };
+        };
     </script>
 </body>
 </html>
