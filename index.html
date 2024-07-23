@@ -45,6 +45,25 @@
             background-size: cover;
             background-position: center;
         }
+        #obstaculo {
+            width: 50px;
+            height: 50px;
+            position: absolute;
+            bottom: 100px; /* Ajuste conforme a altura do gramado */
+            right: 0;
+            background-image: url('obstaculo.png');
+            background-size: cover;
+            background-position: center;
+            animation: mover 5s linear infinite;
+        }
+        @keyframes mover {
+            from {
+                right: 0;
+            }
+            to {
+                right: 100vw;
+            }
+        }
         #cronometro, #pontos {
             position: absolute;
             top: 10px;
@@ -59,7 +78,7 @@
         #pontos {
             top: 50px;
         }
-        #botao {
+        #botao, #pular {
             position: absolute;
             bottom: 10px;
             left: 10px;
@@ -70,6 +89,10 @@
             color: white;
             border: none;
             border-radius: 5px;
+            margin-right: 10px;
+        }
+        #pular {
+            left: 130px;
         }
     </style>
 </head>
@@ -77,17 +100,22 @@
     <div id="jogo">
         <div id="gramado"></div>
         <div id="boneco"></div>
+        <div id="obstaculo"></div>
         <div id="cronometro">Tempo: 0s</div>
         <div id="pontos">Pontos: 0</div>
         <button id="botao">Começar</button>
+        <button id="pular">Pular</button>
     </div>
 
     <script>
         const boneco = document.getElementById('boneco');
         const botao = document.getElementById('botao');
+        const pularBotao = document.getElementById('pular');
         const cronometro = document.getElementById('cronometro');
         const pontosDiv = document.getElementById('pontos');
+        const obstaculo = document.getElementById('obstaculo');
         let correndo = false;
+        let pulando = false;
         let posicao = 0;
         const velocidade = 5;
         let tempo = 0;
@@ -103,6 +131,12 @@
                 correndo = false;
                 botao.textContent = 'Começar';
                 pararJogo();
+            }
+        });
+
+        pularBotao.addEventListener('click', () => {
+            if (!pulando) {
+                pular();
             }
         });
 
@@ -130,6 +164,18 @@
                 boneco.style.left = posicao + 'px';
                 requestAnimationFrame(correr);
             }
+        }
+
+        function pular() {
+            pulando = true;
+            boneco.style.transition = 'bottom 0.5s';
+            boneco.style.bottom = '200px';
+            setTimeout(() => {
+                boneco.style.bottom = '100px';
+                setTimeout(() => {
+                    pulando = false;
+                }, 500);
+            }, 500);
         }
     </script>
 </body>
