@@ -1,245 +1,75 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>stumble guys</title>
+    <title>Roleta de Prêmios</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-        }
-        #jogo {
-            width: 100vw;
-            height: 100vh;
-            background-image: url('stumbleguys.png');
-            background-size: cover;
-            background-position: center;
+        #wheel {
+            width: 300px;
+            height: 300px;
+            border: 10px solid #ccc;
+            border-radius: 50%;
             position: relative;
             overflow: hidden;
+            transform: rotate(0deg);
+            transition: transform 4s ease-out;
         }
-        #gramado {
+        .slice {
+            width: 50%;
+            height: 50%;
+            background: red;
             position: absolute;
-            bottom: 0;
-            width: 200%;
-            height: 100px;
-            background: #228B22; /* Verde gramado */
-            background-size: cover;
-            animation: rolar 10s linear infinite;
+            transform-origin: 100% 100%;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
         }
-        @keyframes rolar {
-            from {
-                transform: translateX(0);
-            }
-            to {
-                transform: translateX(-50%);
-            }
-        }
-        #boneco {
-            width: 50px;
-            height: 60px;
+        .slice:nth-child(2) { transform: rotate(45deg); background: orange; }
+        .slice:nth-child(3) { transform: rotate(90deg); background: yellow; }
+        .slice:nth-child(4) { transform: rotate(135deg); background: green; }
+        .slice:nth-child(5) { transform: rotate(180deg); background: blue; }
+        .slice:nth-child(6) { transform: rotate(225deg); background: indigo; }
+        .slice:nth-child(7) { transform: rotate(270deg); background: violet; }
+        .slice:nth-child(8) { transform: rotate(315deg); background: pink; }
+        #pointer {
+            width: 0; 
+            height: 0; 
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 40px solid #000;
             position: absolute;
-            bottom: 100px; /* Ajuste conforme a altura do gramado */
-            left: 0;
-            background-image: url('boneco.png');
-            background-size: cover;
-            background-position: center;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
         }
-        #obstaculo {
-            width: 50px;
-            height: 50px;
-            position: absolute;
-            bottom: 100px; /* Ajuste conforme a altura do gramado */
-            right: 0;
-            background-image: url('obstaculo.png');
-            background-size: cover;
-            background-position: center;
-            animation: mover 5s linear infinite;
-        }
-        @keyframes mover {
-            from {
-                right: 0;
-            }
-            to {
-                right: 100vw;
-            }
-        }
-        #cronometro, #pontos, #moedas {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 24px;
-            color: #fff;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-        #pontos {
-            top: 50px;
-        }
-        #moedas {
-            top: 90px;
-        }
-        #botao {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        #areaDePulo {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100vw;
-            height: 100px;
-            background: rgba(255, 69, 0, 0.5); /* Cor laranja com transparência */
-        }
-        .moeda {
-            width: 30px;
-            height: 30px;
-            position: absolute;
-            bottom: 120px; /* Ajuste conforme a altura do boneco e gramado */
-            background-image: url('moeda.png');
-            background-size: cover;
-            background-position: center;
-            animation: moverMoeda 5s linear infinite;
-        }
-        @keyframes moverMoeda {
-            from {
-                right: 0;
-            }
-            to {
-                right: 100vw;
-            }
+        #spin {
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <div id="jogo">
-        <div id="gramado"></div>
-        <div id="boneco"></div>
-        <div id="obstaculo"></div>
-        <div id="cronometro">Tempo: 0s</div>
-        <div id="pontos">Pontos: 0</div>
-        <div id="moedas">Moedas: 0</div>
-        <button id="botao">Começar</button>
-        <div id="areaDePulo"></div>
+    <div id="wheel">
+        <div class="slice">PlayStation</div>
+        <div class="slice">Notebook</div>
+        <div class="slice">Celulares</div>
+        <div class="slice">Brinquedos</div>
+        <div class="slice">Gift Card</div>
+        <div class="slice">Headphones</div>
+        <div class="slice">Tablet</div>
+        <div class="slice">Smartwatch</div>
+        <div id="pointer"></div>
     </div>
+    <button id="spin">Play</button>
 
     <script>
-        const boneco = document.getElementById('boneco');
-        const botao = document.getElementById('botao');
-        const areaDePulo = document.getElementById('areaDePulo');
-        const cronometro = document.getElementById('cronometro');
-        const pontosDiv = document.getElementById('pontos');
-        const moedasDiv = document.getElementById('moedas');
-        const obstaculo = document.getElementById('obstaculo');
-        let correndo = false;
-        let pulando = false;
-        let posicao = 0;
-        const velocidade = 5;
-        let tempo = 0;
-        let pontos = 0;
-        let moedas = 0;
-        let intervalo;
+        const wheel = document.getElementById('wheel');
+        const spinBtn = document.getElementById('spin');
+        let deg = 0;
 
-        botao.addEventListener('click', () => {
-            if (!correndo) {
-                correndo = true;
-                botao.textContent = 'Parar';
-                iniciarJogo();
-            } else {
-                correndo = false;
-                botao.textContent = 'Começar';
-                pararJogo();
-            }
+        spinBtn.addEventListener('click', () => {
+            deg = Math.floor(5000 + Math.random() * 5000);
+            wheel.style.transition = 'transform 4s ease-out';
+            wheel.style.transform = `rotate(${deg}deg)`;
         });
-
-        areaDePulo.addEventListener('click', () => {
-            if (!pulando) {
-                pular();
-            }
-        });
-
-        function iniciarJogo() {
-            intervalo = setInterval(() => {
-                tempo++;
-                cronometro.textContent = `Tempo: ${tempo}s`;
-                pontos++;
-                pontosDiv.textContent = `Pontos: ${pontos}`;
-                criarMoeda();
-            }, 1000);
-
-            correr();
-        }
-
-        function pararJogo() {
-            clearInterval(intervalo);
-        }
-
-        function correr() {
-            if (correndo) {
-                posicao += velocidade;
-                if (posicao > window.innerWidth) {
-                    posicao = -boneco.offsetWidth;
-                }
-                boneco.style.left = posicao + 'px';
-                requestAnimationFrame(correr);
-            }
-        }
-
-        function pular() {
-            pulando = true;
-            boneco.style.transition = 'bottom 0.5s';
-            boneco.style.bottom = '200px';
-            setTimeout(() => {
-                boneco.style.bottom = '100px';
-                setTimeout(() => {
-                    pulando = false;
-                }, 500);
-            }, 500);
-        }
-
-        function criarMoeda() {
-            const moeda = document.createElement('div');
-            moeda.classList.add('moeda');
-            moeda.style.bottom = `${Math.random() * 100 + 120}px`; // Posição aleatória na faixa de pulo
-            document.getElementById('jogo').appendChild(moeda);
-
-            moeda.addEventListener('animationiteration', () => {
-                moeda.remove();
-            });
-
-            verificarColisao(moeda);
-        }
-
-        function verificarColisao(moeda) {
-            const intervaloColisao = setInterval(() => {
-                const moedaRect = moeda.getBoundingClientRect();
-                const bonecoRect = boneco.getBoundingClientRect();
-
-                if (
-                    moedaRect.left < bonecoRect.right &&
-                    moedaRect.right > bonecoRect.left &&
-                    moedaRect.top < bonecoRect.bottom &&
-                    moedaRect.bottom > bonecoRect.top
-                ) {
-                    moedas++;
-                    moedasDiv.textContent = `Moedas: ${moedas}`;
-                    moeda.remove();
-                    clearInterval(intervaloColisao);
-                }
-            }, 100);
-        }
     </script>
 </body>
 </html>
