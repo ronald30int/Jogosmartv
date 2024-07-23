@@ -1,178 +1,136 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo Corrida Horizontal</title>
+    <title>Boneco Correndo</title>
     <style>
         body {
             margin: 0;
+            padding: 0;
             overflow: hidden;
-            background-color: #f7f7f7;
+            font-family: Arial, sans-serif;
         }
-        canvas {
-            display: block;
+        #jogo {
+            width: 100vw;
+            height: 100vh;
+            background-color: #87ceeb; /* Céu azul */
+            position: relative;
+            overflow: hidden;
         }
-        #jumpButton {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
+        #gramado {
+            position: absolute;
+            bottom: 0;
+            width: 200%;
+            height: 100px;
+            background: url('gramado.png') repeat-x;
+            background-size: cover;
+            animation: rolar 10s linear infinite;
+        }
+        @keyframes rolar {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-50%);
+            }
+        }
+        #boneco {
+            width: 50px;
+            height: 60px;
+            position: absolute;
+            bottom: 100px; /* Ajuste conforme a altura do gramado */
+            left: 0;
+            background-image: url('boneco.png');
+            background-size: cover;
+            background-position: center;
+        }
+        #cronometro, #pontos {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        #pontos {
+            top: 50px;
+        }
+        #botao {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
             padding: 10px 20px;
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
-        }
-        #score, #timer {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <button id="jumpButton">Pular</button>
-    <div id="score">Pontuação: 0</div>
-    <div id="timer">Tempo: 0s</div>
+    <div id="jogo">
+        <div id="gramado"></div>
+        <div id="boneco"></div>
+        <div id="cronometro">Tempo: 0s</div>
+        <div id="pontos">Pontos: 0</div>
+        <button id="botao">Começar</button>
+    </div>
+
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const width = canvas.width = window.innerWidth;
-        const height = canvas.height = window.innerHeight;
+        const boneco = document.getElementById('boneco');
+        const botao = document.getElementById('botao');
+        const cronometro = document.getElementById('cronometro');
+        const pontosDiv = document.getElementById('pontos');
+        let correndo = false;
+        let posicao = 0;
+        const velocidade = 5;
+        let tempo = 0;
+        let pontos = 0;
+        let intervalo;
 
-        // Carregar imagens
-        const dinoImage = new Image();
-        const grassImage = new Image();
-        const backgroundImage = new Image();
-        dinoImage.src = 'imagem1.png';  // Substitua pelo caminho correto da imagem do boneco
-        grassImage.src = 'imagem2.png'; // Substitua pelo caminho correto da imagem do gramado
-        backgroundImage.src = 'imagem3.png'; // Substitua pelo caminho correto da imagem do fundo
-
-        const dino = {
-            x: 50,
-            y: height - 120, // Ajustado para considerar a altura do gramado
-            width: 40,
-            height: 40,
-            dx: 5,
-            dy: 0,
-            gravity: 0.8,
-            jumpPower: -12,
-            isJumping: false
-        };
-
-        let obstacles = [];
-        let obstacleInterval = 0;
-        let score = 0;
-        let startTime = Date.now();
-
-        function drawDino() {
-            ctx.drawImage(dinoImage, dino.x, dino.y, dino.width, dino.height);
-        }
-
-        function drawObstacles() {
-            obstacles.forEach(obs => {
-                ctx.drawImage(grassImage, obs.x, obs.y, obs.width, obs.height);
-            });
-        }
-
-        function drawGround() {
-            ctx.drawImage(grassImage, 0, height - 50, width, 50); // Solo de gramado
-        }
-
-        function drawBackground() {
-            ctx.drawImage(backgroundImage, 0, 0, width, height); // Fundo de tela cheia
-        }
-
-        function updateObstacles() {
-            obstacleInterval++;
-            if (obstacleInterval > 60) {
-                obstacles.push({
-                    x: width,
-                    y: height - 70,
-                    width: 20 + Math.random() * 30,
-                    height: 20 + Math.random() * 30
-                });
-                obstacleInterval = 0;
-            }
-
-            obstacles.forEach(obs => {
-                obs.x -= dino.dx;
-            });
-
-            obstacles = obstacles.filter(obs => obs.x + obs.width > 0);
-        }
-
-        function checkCollision() {
-            return obstacles.some(obs => {
-                return dino.x < obs.x + obs.width &&
-                    dino.x + dino.width > obs.x &&
-                    dino.y < obs.y + obs.height &&
-                    dino.y + dino.height > obs.y;
-            });
-        }
-
-        function jump() {
-            if (!dino.isJumping) {
-                dino.dy = dino.jumpPower;
-                dino.isJumping = true;
-            }
-        }
-
-        function updateTimer() {
-            const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-            document.getElementById('timer').textContent = `Tempo: ${elapsedTime}s`;
-        }
-
-        function updateScore() {
-            score++;
-            document.getElementById('score').textContent = `Pontuação: ${score}`;
-        }
-
-        function gameLoop() {
-            ctx.clearRect(0, 0, width, height);
-
-            drawBackground();
-            drawGround();
-
-            dino.y += dino.dy;
-            dino.dy += dino.gravity;
-
-            if (dino.y > height - 70) {
-                dino.y = height - 70;
-                dino.dy = 0;
-                dino.isJumping = false;
-            }
-
-            updateObstacles();
-            drawDino();
-            drawObstacles();
-
-            if (checkCollision()) {
-                alert('Game Over! Pontuação final: ' + score);
-                obstacles = [];
-                dino.y = height - 70;
-                dino.dy = 0;
-                dino.isJumping = false;
-                score = 0;
-                startTime = Date.now();
+        botao.addEventListener('click', () => {
+            if (!correndo) {
+                correndo = true;
+                botao.textContent = 'Parar';
+                iniciarJogo();
             } else {
-                updateScore();
-                updateTimer();
+                correndo = false;
+                botao.textContent = 'Começar';
+                pararJogo();
             }
+        });
 
-            requestAnimationFrame(gameLoop);
+        function iniciarJogo() {
+            intervalo = setInterval(() => {
+                tempo++;
+                cronometro.textContent = `Tempo: ${tempo}s`;
+                pontos++;
+                pontosDiv.textContent = `Pontos: ${pontos}`;
+            }, 1000);
+
+            correr();
         }
 
-        document.getElementById('jumpButton').addEventListener('click', jump);
+        function pararJogo() {
+            clearInterval(intervalo);
+        }
 
-        // Iniciar o jogo quando as imagens forem carregadas
-        backgroundImage.onload = () => {
-            grassImage.onload = () => {
-                dinoImage.onload = () => {
-                    gameLoop();
-                };
-            };
-        };
+        function correr() {
+            if (correndo) {
+                posicao += velocidade;
+                if (posicao > window.innerWidth) {
+                    posicao = -boneco.offsetWidth;
+                }
+                boneco.style.left = posicao + 'px';
+                requestAnimationFrame(correr);
+            }
+        }
     </script>
 </body>
 </html>
