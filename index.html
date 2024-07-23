@@ -64,7 +64,7 @@
                 right: 100vw;
             }
         }
-        #cronometro, #pontos {
+        #cronometro, #pontos, #moedas {
             position: absolute;
             top: 10px;
             left: 10px;
@@ -77,6 +77,9 @@
         }
         #pontos {
             top: 50px;
+        }
+        #moedas {
+            top: 90px;
         }
         #botao {
             position: absolute;
@@ -98,6 +101,24 @@
             height: 100px;
             background: rgba(255, 69, 0, 0.5); /* Cor laranja com transparência */
         }
+        .moeda {
+            width: 30px;
+            height: 30px;
+            position: absolute;
+            bottom: 120px; /* Ajuste conforme a altura do boneco e gramado */
+            background-image: url('moeda.png');
+            background-size: cover;
+            background-position: center;
+            animation: moverMoeda 5s linear infinite;
+        }
+        @keyframes moverMoeda {
+            from {
+                right: 0;
+            }
+            to {
+                right: 100vw;
+            }
+        }
     </style>
 </head>
 <body>
@@ -107,6 +128,7 @@
         <div id="obstaculo"></div>
         <div id="cronometro">Tempo: 0s</div>
         <div id="pontos">Pontos: 0</div>
+        <div id="moedas">Moedas: 0</div>
         <button id="botao">Começar</button>
         <div id="areaDePulo"></div>
     </div>
@@ -117,6 +139,7 @@
         const areaDePulo = document.getElementById('areaDePulo');
         const cronometro = document.getElementById('cronometro');
         const pontosDiv = document.getElementById('pontos');
+        const moedasDiv = document.getElementById('moedas');
         const obstaculo = document.getElementById('obstaculo');
         let correndo = false;
         let pulando = false;
@@ -124,6 +147,7 @@
         const velocidade = 5;
         let tempo = 0;
         let pontos = 0;
+        let moedas = 0;
         let intervalo;
 
         botao.addEventListener('click', () => {
@@ -150,6 +174,7 @@
                 cronometro.textContent = `Tempo: ${tempo}s`;
                 pontos++;
                 pontosDiv.textContent = `Pontos: ${pontos}`;
+                criarMoeda();
             }, 1000);
 
             correr();
@@ -180,6 +205,38 @@
                     pulando = false;
                 }, 500);
             }, 500);
+        }
+
+        function criarMoeda() {
+            const moeda = document.createElement('div');
+            moeda.classList.add('moeda');
+            moeda.style.bottom = `${Math.random() * 100 + 120}px`; // Posição aleatória na faixa de pulo
+            document.getElementById('jogo').appendChild(moeda);
+
+            moeda.addEventListener('animationiteration', () => {
+                moeda.remove();
+            });
+
+            verificarColisao(moeda);
+        }
+
+        function verificarColisao(moeda) {
+            const intervaloColisao = setInterval(() => {
+                const moedaRect = moeda.getBoundingClientRect();
+                const bonecoRect = boneco.getBoundingClientRect();
+
+                if (
+                    moedaRect.left < bonecoRect.right &&
+                    moedaRect.right > bonecoRect.left &&
+                    moedaRect.top < bonecoRect.bottom &&
+                    moedaRect.bottom > bonecoRect.top
+                ) {
+                    moedas++;
+                    moedasDiv.textContent = `Moedas: ${moedas}`;
+                    moeda.remove();
+                    clearInterval(intervaloColisao);
+                }
+            }, 100);
         }
     </script>
 </body>
