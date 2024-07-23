@@ -12,36 +12,22 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-image: url('imagem.png');
+            background-image: url('URL_DA_SUA_IMAGEM_DE_FUNDO');
             background-size: cover;
             background-position: center;
         }
         #wheel {
             width: 300px;
             height: 300px;
-            border: 10px solid #ccc;
             border-radius: 50%;
             position: relative;
             overflow: hidden;
             transform: rotate(0deg);
             transition: transform 4s ease-out;
-            background-color: white;
+            background-image: url('roleta.png');
+            background-size: cover;
+            background-position: center;
         }
-        .slice {
-            width: 50%;
-            height: 50%;
-            position: absolute;
-            transform-origin: 100% 100%;
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
-        }
-        .slice:nth-child(1) { background: red; }
-        .slice:nth-child(2) { transform: rotate(45deg); background: orange; }
-        .slice:nth-child(3) { transform: rotate(90deg); background: yellow; }
-        .slice:nth-child(4) { transform: rotate(135deg); background: green; }
-        .slice:nth-child(5) { transform: rotate(180deg); background: blue; }
-        .slice:nth-child(6) { transform: rotate(225deg); background: indigo; }
-        .slice:nth-child(7) { transform: rotate(270deg); background: violet; }
-        .slice:nth-child(8) { transform: rotate(315deg); background: pink; }
         #pointer {
             width: 0; 
             height: 0; 
@@ -55,19 +41,14 @@
         }
         #spin {
             margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <div id="wheel">
-        <div class="slice">PlayStation</div>
-        <div class="slice">Notebook</div>
-        <div class="slice">Celulares</div>
-        <div class="slice">Brinquedos</div>
-        <div class="slice">Gift Card</div>
-        <div class="slice">Headphones</div>
-        <div class="slice">Tablet</div>
-        <div class="slice">Smartwatch</div>
         <div id="pointer"></div>
     </div>
     <button id="spin">Play</button>
