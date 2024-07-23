@@ -23,7 +23,7 @@
             bottom: 0;
             width: 200%;
             height: 100px;
-            background: url('gramado.png') repeat-x;
+            background: #228B22; /* Verde gramado */
             background-size: cover;
             animation: rolar 10s linear infinite;
         }
@@ -78,7 +78,7 @@
         #pontos {
             top: 50px;
         }
-        #botao, #pular {
+        #botao {
             position: absolute;
             bottom: 10px;
             left: 10px;
@@ -89,10 +89,14 @@
             color: white;
             border: none;
             border-radius: 5px;
-            margin-right: 10px;
         }
-        #pular {
-            left: 130px;
+        #areaDePulo {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 100px;
+            background: rgba(255, 69, 0, 0.5); /* Cor laranja com transparência */
         }
     </style>
 </head>
@@ -104,13 +108,13 @@
         <div id="cronometro">Tempo: 0s</div>
         <div id="pontos">Pontos: 0</div>
         <button id="botao">Começar</button>
-        <button id="pular">Pular</button>
+        <div id="areaDePulo"></div>
     </div>
 
     <script>
         const boneco = document.getElementById('boneco');
         const botao = document.getElementById('botao');
-        const pularBotao = document.getElementById('pular');
+        const areaDePulo = document.getElementById('areaDePulo');
         const cronometro = document.getElementById('cronometro');
         const pontosDiv = document.getElementById('pontos');
         const obstaculo = document.getElementById('obstaculo');
@@ -134,7 +138,7 @@
             }
         });
 
-        pularBotao.addEventListener('click', () => {
+        areaDePulo.addEventListener('click', () => {
             if (!pulando) {
                 pular();
             }
